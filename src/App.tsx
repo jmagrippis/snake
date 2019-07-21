@@ -1,9 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
 
 import { generateBoard } from './generateBoard'
-import { Piece } from './types'
+import { Piece, Direction } from './types'
 import { useInterval } from './useInterval'
+import { calculateHeadingToIndex } from './calculateHeadingToIndex'
 
 const Container = styled.div<{ width: number }>`
   display: grid;
@@ -39,15 +40,59 @@ const getInitialSnakeState = ({
 
   return [headPosition, headPosition + 1, headPosition + 2]
 }
+
 const App: React.FC = () => {
   const width = 32
   const height = 16
   const [board] = useState(generateBoard({ width, height }))
   const [snake, setSnake] = useState(getInitialSnakeState({ width, height }))
+  const [direction, setDirection] = useState(Direction.Left)
+
+  const handleKeydown = ({ key }: KeyboardEvent) => {
+    switch (key) {
+      case 'ArrowUp':
+      case 'w':
+        if (direction !== Direction.Down) {
+          setDirection(Direction.Up)
+        }
+        break
+      case 'ArrowDown':
+      case 's':
+        if (direction !== Direction.Up) {
+          setDirection(Direction.Down)
+        }
+        break
+      case 'ArrowLeft':
+      case 'a':
+        if (direction !== Direction.Right) {
+          setDirection(Direction.Left)
+        }
+        break
+      case 'ArrowRight':
+      case 'd':
+        if (direction !== Direction.Left) {
+          setDirection(Direction.Right)
+        }
+        break
+    }
+  }
+
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeydown)
+
+    return () => {
+      document.removeEventListener('keydown', handleKeydown)
+    }
+  })
 
   useInterval(() => {
-    setSnake((snake) => [snake[0] - 1, ...snake.slice(0, snake.length - 1)])
-  }, 300)
+    const nextBlock = calculateHeadingToIndex({
+      direction,
+      snake,
+      rowLength: width
+    })
+    setSnake((snake) => [nextBlock, ...snake.slice(0, snake.length - 1)])
+  }, 200)
 
   return (
     <Container width={width}>

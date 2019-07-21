@@ -4,3 +4,10 @@ export enum Piece {
   Empty,
   Obstacle
 }
+
+export enum Direction {
+  Left,
+  Right,
+  Up,
+  Down
+}

@@ -10,7 +10,7 @@ export const useInterval = (callback: Callback, timeout: number) => {
   })
 
   useEffect(() => {
-    function tick() {
+    const tick = () => {
       savedCallback.current && savedCallback.current()
     }
 
