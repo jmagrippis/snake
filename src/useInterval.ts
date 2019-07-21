@@ -14,7 +14,7 @@ export const useInterval = (callback: Callback, timeout: number) => {
       savedCallback.current()
     }
 
-    let id = setInterval(tick, timeout)
+    const id = setInterval(tick, timeout)
     return () => clearInterval(id)
   }, [timeout])
 }
