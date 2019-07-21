@@ -18,9 +18,9 @@ const typeToColor = {
   [Piece.Pellet]: '#D56F3E',
   [Piece.Obstacle]: '#241623'
 }
-const PieceBlock = styled.div<{ type: Piece }>`
+const PieceBlock = styled.div<{ dataType: Piece }>`
   width: 100%;
-  background-color: ${({ type }) => typeToColor[type]};
+  background-color: ${({ dataType }) => typeToColor[dataType]};
 
   &:after {
     content: '';
@@ -29,7 +29,7 @@ const PieceBlock = styled.div<{ type: Piece }>`
   }
 `
 
-const getInitialSnakeState = ({
+const getInitialSnake = ({
   width,
   height
 }: {
@@ -41,11 +41,20 @@ const getInitialSnakeState = ({
   return [headPosition, headPosition + 1, headPosition + 2]
 }
 
-const App: React.FC = () => {
-  const width = 32
-  const height = 16
+const getInitialPellet = ({
+  width,
+  height
+}: {
+  width: number
+  height: number
+}) => Math.floor((width * height) / 2 + width * 0.25)
+
+type Props = { width: number; height: number }
+
+const App = ({ width, height }: Props) => {
   const [board] = useState(generateBoard({ width, height }))
-  const [snake, setSnake] = useState(getInitialSnakeState({ width, height }))
+  const [snake, setSnake] = useState(getInitialSnake({ width, height }))
+  const [pellet, setPellet] = useState(getInitialPellet({ width, height }))
   const [direction, setDirection] = useState(Direction.Left)
   const [lastDirection, setLastDirection] = useState(Direction.Right)
 
@@ -89,26 +98,52 @@ const App: React.FC = () => {
     }
   }, [handleKeydown])
 
-  useInterval(() => {
+  const move = useCallback(() => {
     const nextBlock = calculateHeadingToIndex({
       direction,
       snake,
       rowLength: width
     })
-    setSnake((snake) => [nextBlock, ...snake.slice(0, snake.length - 1)])
+    setSnake((snake) => [
+      nextBlock,
+      ...snake.slice(0, pellet === nextBlock ? snake.length : snake.length - 1)
+    ])
     setLastDirection(direction)
-  }, 200)
+    if (pellet === nextBlock) {
+      const possibleNextPellets = [...Array(width * height).keys()].filter(
+        (i) => i !== pellet && !snake.includes(i)
+      )
+      setPellet(
+        possibleNextPellets[
+          Math.floor(Math.random() * possibleNextPellets.length)
+        ]
+      )
+    }
+  }, [direction, snake, pellet, width, height])
+
+  useInterval(move, 100)
 
   return (
     <Container width={width}>
       {board.map((_, i) => (
         <PieceBlock
           key={i}
-          type={snake.includes(i) ? Piece.Snake : Piece.Empty}
+          dataType={
+            i === pellet
+              ? Piece.Pellet
+              : snake.includes(i)
+              ? Piece.Snake
+              : Piece.Empty
+          }
         />
       ))}
     </Container>
   )
+}
+
+App.defaultProps = {
+  width: 32,
+  height: 16
 }
 
 export default App
