@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import styled from 'styled-components'
 
 import { generateBoard } from './generateBoard'
@@ -47,35 +47,39 @@ const App: React.FC = () => {
   const [board] = useState(generateBoard({ width, height }))
   const [snake, setSnake] = useState(getInitialSnakeState({ width, height }))
   const [direction, setDirection] = useState(Direction.Left)
+  const [lastDirection, setLastDirection] = useState(Direction.Right)
 
-  const handleKeydown = ({ key }: KeyboardEvent) => {
-    switch (key) {
-      case 'ArrowUp':
-      case 'w':
-        if (direction !== Direction.Down) {
-          setDirection(Direction.Up)
-        }
-        break
-      case 'ArrowDown':
-      case 's':
-        if (direction !== Direction.Up) {
-          setDirection(Direction.Down)
-        }
-        break
-      case 'ArrowLeft':
-      case 'a':
-        if (direction !== Direction.Right) {
-          setDirection(Direction.Left)
-        }
-        break
-      case 'ArrowRight':
-      case 'd':
-        if (direction !== Direction.Left) {
-          setDirection(Direction.Right)
-        }
-        break
-    }
-  }
+  const handleKeydown = useCallback(
+    ({ key }: KeyboardEvent) => {
+      switch (key) {
+        case 'ArrowUp':
+        case 'w':
+          if (lastDirection !== Direction.Down) {
+            setDirection(Direction.Up)
+          }
+          break
+        case 'ArrowDown':
+        case 's':
+          if (lastDirection !== Direction.Up) {
+            setDirection(Direction.Down)
+          }
+          break
+        case 'ArrowLeft':
+        case 'a':
+          if (lastDirection !== Direction.Right) {
+            setDirection(Direction.Left)
+          }
+          break
+        case 'ArrowRight':
+        case 'd':
+          if (lastDirection !== Direction.Left) {
+            setDirection(Direction.Right)
+          }
+          break
+      }
+    },
+    [lastDirection]
+  )
 
   useEffect(() => {
     document.addEventListener('keydown', handleKeydown)
@@ -83,7 +87,7 @@ const App: React.FC = () => {
     return () => {
       document.removeEventListener('keydown', handleKeydown)
     }
-  })
+  }, [handleKeydown])
 
   useInterval(() => {
     const nextBlock = calculateHeadingToIndex({
@@ -92,6 +96,7 @@ const App: React.FC = () => {
       rowLength: width
     })
     setSnake((snake) => [nextBlock, ...snake.slice(0, snake.length - 1)])
+    setLastDirection(direction)
   }, 200)
 
   return (
