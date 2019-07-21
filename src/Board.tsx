@@ -56,6 +56,36 @@ type Props = {
   registerMove: (direction: Direction) => void
 }
 
+const isHittingUpperOrLowerBoundary = ({
+  nextBlock,
+  width,
+  height
+}: {
+  nextBlock: number
+  width: number
+  height: number
+}) => nextBlock < 0 || nextBlock >= width * height
+
+const isHittingLeftOrRightBoundary = ({
+  nextBlock,
+  width,
+  snake: [head]
+}: {
+  nextBlock: number
+  width: number
+  snake: number[]
+}) =>
+  (!(nextBlock % width) && !((head + 1) % width)) ||
+  (!((nextBlock + 1) % width) && !(head % width))
+
+const isEatingItself = ({
+  snake,
+  nextBlock
+}: {
+  snake: number[]
+  nextBlock: number
+}) => snake.includes(nextBlock)
+
 export const Board = ({ width, height, direction, registerMove }: Props) => {
   const [board] = useState(generateBoard({ width, height }))
   const [snake, setSnake] = useState(getInitialSnake({ width, height }))
@@ -67,6 +97,15 @@ export const Board = ({ width, height, direction, registerMove }: Props) => {
       snake,
       rowLength: width
     })
+
+    if (
+      isHittingUpperOrLowerBoundary({ nextBlock, width, height }) ||
+      isHittingLeftOrRightBoundary({ nextBlock, width, snake }) ||
+      isEatingItself({ snake, nextBlock })
+    ) {
+      console.log('GAME OVER!')
+      return
+    }
     setSnake((snake) => [
       nextBlock,
       ...snake.slice(0, pellet === nextBlock ? snake.length : snake.length - 1)
