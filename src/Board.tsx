@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, memo } from 'react'
 import styled from 'styled-components'
 
 import { generateBoard } from './generateBoard'
@@ -6,11 +6,11 @@ import { Piece, Direction } from './types'
 import { useInterval } from './useInterval'
 import { calculateHeadingToIndex } from './calculateHeadingToIndex'
 
-const Container = styled.div<{ width: number }>`
+const Container = memo(styled.div<{ width: number }>`
   display: grid;
   grid-template-columns: repeat(${({ width }) => width}, 1fr);
   grid-auto-rows: 1fr;
-`
+`)
 
 const typeToColor = {
   [Piece.Empty]: '#D0CD94',
@@ -18,7 +18,7 @@ const typeToColor = {
   [Piece.Pellet]: '#D56F3E',
   [Piece.Obstacle]: '#241623'
 }
-const PieceBlock = styled.div<{ dataType: Piece }>`
+const PieceBlock = memo(styled.div<{ dataType: Piece }>`
   width: 100%;
   background-color: ${({ dataType }) => typeToColor[dataType]};
 
@@ -27,7 +27,7 @@ const PieceBlock = styled.div<{ dataType: Piece }>`
     display: block;
     padding-bottom: 100%;
   }
-`
+`)
 
 const getInitialSnake = ({
   width,
